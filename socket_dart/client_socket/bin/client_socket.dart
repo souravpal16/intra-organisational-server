@@ -1,9 +1,13 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 
 void main() async {
   // connect to the socket server
-  final socket = await Socket.connect('192.168.56.1', 4567);
+  print('Enter username: ');
+  String? username = stdin.readLineSync();
+  final socket = await Socket.connect('127.0.0.1', 4567);
+  await sendMessage(socket, convertMessageToText('username', username));
   print('Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
 
   // listen for responses from the server
@@ -11,7 +15,9 @@ void main() async {
     // handle data from the server
     (Uint8List data) {
       final serverResponse = String.fromCharCodes(data);
-      print('Server: $serverResponse');
+      Map<String, dynamic> serverResponseDecoded = json.decode(serverResponse);
+      print(
+          '${serverResponseDecoded['username']}: ${serverResponseDecoded['text']}');
     },
 
     // handle errors
@@ -27,25 +33,24 @@ void main() async {
     },
   );
 
-  // send some messages to the server
-  // await sendMessage(socket, 'Knock, knock.');
-  // await sendMessage(socket, 'Banana');
-  // await sendMessage(socket, 'Banana');
-  // await sendMessage(socket, 'Banana');
-  // await sendMessage(socket, 'Banana');
-  // await sendMessage(socket, 'Banana');
-  // await sendMessage(socket, 'Orange');
-  // await sendMessage(socket, "Orange you glad I didn't say banana again?");
-  String? message = '';
-  while (message != 'exit') {
-    message = stdin.readLineSync();
-    await sendMessage(socket, message);
+  String? messageFromClient = '';
+  while (messageFromClient != 'exit') {
+    messageFromClient = stdin.readLineSync();
+    String messageToBeSent = convertMessageToText('text', messageFromClient);
+    await sendMessage(socket, messageToBeSent);
   }
   //print('done');
 }
 
-Future<void> sendMessage(Socket socket, String? message) async {
-  print('Client: $message');
+Future<void> sendMessage(Socket socket, String message) async {
+  //print('Client: $message');
   socket.write(message);
   await Future.delayed(Duration(seconds: 2));
+}
+
+String convertMessageToText(String key, String? value) {
+  Map<String, String?> m = {};
+  m[key] = value;
+  String message = json.encode(m);
+  return message;
 }

@@ -1,17 +1,18 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 
 void main() async {
   // bind the socket server to an address and port
   final server = await ServerSocket.bind('127.0.0.1', 4567);
-
+  Map<Socket, String> clientList = {};
   // listen for clent connections to the server
   server.listen((client) {
-    handleConnection(client);
+    handleConnection(client, clientList);
   });
 }
 
-void handleConnection(Socket client) {
+void handleConnection(Socket client, Map<Socket, String> clientList) {
   print('Connection from'
       ' ${client.remoteAddress.address}:${client.remotePort}');
 
@@ -20,20 +21,21 @@ void handleConnection(Socket client) {
     // handle data from the client
     (Uint8List data) async {
       await Future.delayed(Duration(seconds: 1));
-      final message = String.fromCharCodes(data);
-      client.write('Message length <${message.length}> received');
-      if (message == 'exit') {
-        client.write('see ya!');
-        client.close();
+      final messageTemp = String.fromCharCodes(data);
+      Map<String, dynamic> message = json.decode(messageTemp);
+      if (message.containsKey('username')) {
+        insert(clientList, client, message['username']);
+      } else {
+        if (message['text'] == 'exit') {
+          //client.write('${clientList[client]} Left!}');
+          await sendToClients(
+              clientList, client, '${clientList[client]} Left!}');
+          clientList.remove(client);
+          client.close();
+        } else {
+          await sendToClients(clientList, client, message['text']);
+        }
       }
-      // if (message == 'Knock, knock.') {
-      //   client.write('Who is there?');
-      // } else if (message.length < 10) {
-      //   client.write('$message who?');
-      // } else {
-      //   client.write('Very funny.');
-      //   client.close();
-      // }
     },
 
     // handle errors
@@ -48,4 +50,26 @@ void handleConnection(Socket client) {
       client.close();
     },
   );
+}
+
+Future<void> sendToClients(
+    Map<Socket, String> clientList, Socket client, String message) async {
+  clientList.forEach((key, value) {
+    if (key != client) {
+      String username = clientList[client] ?? '';
+      key.write(convertMessageMapToString(username, message));
+    }
+  });
+}
+
+void insert(Map<Socket, String> clientList, Socket client, String username) {
+  clientList[client] = username;
+}
+
+String convertMessageMapToString(String username, String message) {
+  Map<String, String> m = {};
+  m['username'] = username;
+  m['text'] = message;
+  String finalMessage = json.encode(m);
+  return finalMessage;
 }
