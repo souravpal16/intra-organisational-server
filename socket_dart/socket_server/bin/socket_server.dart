@@ -33,7 +33,9 @@ void handleConnection(Socket client, Map<Socket, String> clientList) {
           clientList.remove(client);
           client.close();
         } else {
-          await sendToClients(clientList, client, message['text']);
+          if (message['text'] != '') {
+            await sendToClients(clientList, client, message['text']);
+          }
         }
       }
     },
