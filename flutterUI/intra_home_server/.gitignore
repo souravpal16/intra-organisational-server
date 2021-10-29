@@ -31,8 +31,6 @@
 .pub/
 /build/
 
-ios/
-android/
 test/
 web/
 .metadata

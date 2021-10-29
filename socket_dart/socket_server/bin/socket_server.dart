@@ -2,9 +2,13 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 
+//'127.0.0.1'
+// InternetAddress.anyIPv4
+final URL = '192.168.0.124';
+int PORT = 4002;
 void main() async {
   // bind the socket server to an address and port
-  final server = await ServerSocket.bind('127.0.0.1', 4567);
+  final server = await ServerSocket.bind(URL, PORT);
   Map<Socket, String> clientList = {};
   // listen for clent connections to the server
   server.listen((client) {

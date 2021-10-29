@@ -1,53 +1,28 @@
 import 'package:flutter/material.dart';
-import './messageField.dart';
+import 'models/client.dart';
+import './screens/final_socket_client_page.dart';
+import './screens/socket_connection_page.dart';
+import './screens/login_page.dart';
 
-void main() {
+void main() async {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: TestPage(),
-    );
-  }
-}
-
-class TestPage extends StatelessWidget {
-  List<Message> userMessageList = [
-    Message(username: 'adam', message: 'hello otis', isLeft: true),
-    Message(username: 'otis', message: 'hello maueve', isLeft: true),
-    Message(username: 'admin', message: 'mehraba everyone', isLeft: true),
-  ];
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 5,
-          vertical: 20,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: userMessageList.length,
-                itemBuilder: (context, index) {
-                  return MessageField(
-                    username: userMessageList[index].username,
-                    message: userMessageList[index].message,
-                    isLeft: userMessageList[index].isLeft,
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+      title: 'Intra Organisation Server',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoginPage(),
+        '/chatScreen': (context) => ChatScreen(),
+        '/socketConnectionPage': (context) => SocketConnectionAwaitPage()
+      },
     );
   }
 }

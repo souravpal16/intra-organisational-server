@@ -6,8 +6,9 @@ void main() async {
   // connect to the socket server
   print('Enter username: ');
   String? username = stdin.readLineSync();
-  final socket = await Socket.connect('127.0.0.1', 4567);
+  final socket = await Socket.connect('192.168.0.124', 4002);
   await sendMessage(socket, convertMessageToText('username', username));
+  print('A new socket: ${socket.address.address}:${socket.port}');
   print('Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
 
   // listen for responses from the server

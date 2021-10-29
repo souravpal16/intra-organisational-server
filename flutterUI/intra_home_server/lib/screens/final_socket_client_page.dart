@@ -1,61 +1,37 @@
 import 'package:flutter/material.dart';
-import './messageField.dart';
-import 'dart:io';
+import '../widgets/messageField.dart';
 import 'dart:typed_data';
-import './client.dart';
+import '../data/messageList.dart';
+import '../models/message.dart';
 
-void main() async {
-  print("app running again");
-  ClientSocket clientSocket = ClientSocket();
-  await clientSocket.initialiseSocket('127.0.0.1', 4567);
-  String username = 'Tester';
-  clientSocket.socket
-      .write(clientSocket.convertMapToString('username', username));
-  runApp(MyApp(clientSocket: clientSocket));
-}
+const routeName = 'chatScreen';
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  ClientSocket clientSocket;
-  MyApp({required this.clientSocket}) {}
+class ChatScreen extends StatelessWidget {
+  late final clientSocket;
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(clientSocket: this.clientSocket),
+    final args = ModalRoute.of(context)!.settings.arguments as Map;
+    String username = args['username'];
+    clientSocket = args['socket'];
+    return MyHomePage(
+      clientSocket: clientSocket,
+      username: username,
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   final clientSocket;
-  MyHomePage({required this.clientSocket});
+  final username;
+  MyHomePage({required this.clientSocket, required this.username});
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final TextEditingController _controller = new TextEditingController();
-  List<Message> userMessageList = [
-    Message(username: 'adam', message: 'hello otis', isLeft: true),
-    Message(username: 'otis', message: 'hello maueve', isLeft: true),
-    Message(username: 'admin', message: 'mehraba everyone', isLeft: true),
-  ];
-  String username = "Tester";
-
-  void _sendMessage() {
-    if (_controller.text.isNotEmpty) {
-      widget.clientSocket.sendMessage(_controller.text);
-    }
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
+  void startListening() {
     widget.clientSocket.socket.listen(
       // handle data from the server
       (Uint8List data) {
@@ -81,11 +57,26 @@ class _MyHomePageState extends State<MyHomePage> {
         widget.clientSocket.socket.destroy();
       },
     );
+  }
+
+  @override
+  void initState() {
+    startListening();
+    // TODO: implement initState
     super.initState();
+  }
+
+  final TextEditingController _controller = new TextEditingController();
+
+  void _sendMessage() {
+    if (_controller.text.isNotEmpty) {
+      widget.clientSocket.sendMessage(_controller.text);
+    }
   }
 
   @override
   void dispose() {
+    _controller.dispose();
     widget.clientSocket.socket.close();
     super.dispose();
   }
@@ -94,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Server'),
+        title: Text('Chat Room'),
       ),
       body: Container(
         padding: EdgeInsets.symmetric(
@@ -123,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onSubmitted: (text) {
                   _sendMessage();
                   userMessageList.add(Message(
-                      username: username, message: text, isLeft: false));
+                      username: widget.username, message: text, isLeft: false));
                   _controller.clear();
                   setState(() {});
                 },
