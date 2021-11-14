@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'models/client.dart';
-import './screens/final_socket_client_page.dart';
+import 'screens/chat_screen.dart';
 import './screens/socket_connection_page.dart';
 import './screens/login_page.dart';
+import './screens/p2p_server_screen.dart';
+import './screens/p2p_client_screen.dart';
 
 void main() async {
   runApp(MyApp());
@@ -21,7 +23,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => LoginPage(),
         '/chatScreen': (context) => ChatScreen(),
-        '/socketConnectionPage': (context) => SocketConnectionAwaitPage()
+        '/socketConnectionPage': (context) => SocketConnectionAwaitPage(),
+        '/P2PClientScreen': (context) => P2PClientScreen(),
+        '/P2PServerScreen': (context) => P2PServerScreen(),
       },
     );
   }

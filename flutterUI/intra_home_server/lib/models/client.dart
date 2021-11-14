@@ -24,6 +24,14 @@ class ClientSocket {
     socket.write(convertMapToString('text', text));
   }
 
+  String get getServerAddress {
+    return '${socket.remoteAddress.address}';
+  }
+
+  String get getOwnAddress {
+    return '${socket.address.address}';
+  }
+
   void closeSocket() {
     socket.destroy();
   }

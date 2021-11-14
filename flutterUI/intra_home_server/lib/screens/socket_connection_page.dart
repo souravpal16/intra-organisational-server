@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intra_home_server/models/appBarWidget.dart';
 import '../models/client.dart';
+import '../data/constants.dart';
 
 class SocketConnectionAwaitPage extends StatefulWidget {
   @override
@@ -10,7 +12,7 @@ class SocketConnectionAwaitPage extends StatefulWidget {
 class _SocketConnectionAwaitPageState extends State<SocketConnectionAwaitPage> {
   Future<ClientSocket> _connection(String username) async {
     ClientSocket clientSocket = ClientSocket();
-    await clientSocket.initialiseSocket('192.168.0.124', 4002);
+    await clientSocket.initialiseSocket('192.168.221.88', 4002);
     //String username = 'Tester';
     clientSocket.socket
         .write(clientSocket.convertMapToString('username', username));
@@ -19,9 +21,13 @@ class _SocketConnectionAwaitPageState extends State<SocketConnectionAwaitPage> {
 
   @override
   Widget build(BuildContext context) {
+    print('running again');
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     String username = args['username'];
     return Scaffold(
+      appBar: AppBarWidget(
+        title: 'Main Menu',
+      ),
       body: FutureBuilder<ClientSocket>(
         future: _connection(username),
         builder: (BuildContext context, AsyncSnapshot<ClientSocket> snapshot) {
@@ -34,19 +40,48 @@ class _SocketConnectionAwaitPageState extends State<SocketConnectionAwaitPage> {
                 size: 60,
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Text('Result: connection successful'),
+                padding: EdgeInsets.only(top: 16),
+                child: RichText(
+                  text: TextSpan(
+                    text: 'Result: ',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    children: const <TextSpan>[
+                      TextSpan(
+                        text: 'Connection Successful!',
+                        style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/chatScreen',
-                    arguments: {'username': username, 'socket': snapshot.data},
-                  );
-                },
-                child: Text('Go to chat room'),
-              )
+              Text(
+                '${username}: ${snapshot.data!.getServerAddress}',
+                style: TextStyle(fontSize: 20),
+              ),
+              ButtonOptionWidget(
+                username: username,
+                data: snapshot.data,
+                textLabel: 'Go To Chat Room',
+                route: '/chatScreen',
+              ),
+              ButtonOptionWidget(
+                username: username,
+                data: snapshot.data,
+                textLabel: 'Start P2P',
+                route: '/P2PServerScreen',
+              ),
+              ButtonOptionWidget(
+                username: username,
+                data: snapshot.data,
+                textLabel: 'Enter P2P',
+                route: '/P2PClientScreen',
+              ),
             ];
           } else if (snapshot.hasError) {
             children = <Widget>[
@@ -57,7 +92,7 @@ class _SocketConnectionAwaitPageState extends State<SocketConnectionAwaitPage> {
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: Text('Error: connection unsuccessful'),
+                child: Text('Error: connection unsuccessful ${snapshot.error}'),
               )
             ];
           } else {
@@ -81,6 +116,45 @@ class _SocketConnectionAwaitPageState extends State<SocketConnectionAwaitPage> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class ButtonOptionWidget extends StatelessWidget {
+  final username;
+  final data;
+  final textLabel;
+  final route;
+  ButtonOptionWidget({this.username, this.data, this.textLabel, this.route});
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          route,
+          arguments: {'username': username, 'socket': data},
+        );
+      },
+      child: Container(
+        width: 200,
+        decoration: BoxDecoration(
+          boxShadow: [BoxShadow(spreadRadius: 1)],
+          border: Border.all(color: color3, width: 3),
+          borderRadius: BorderRadius.circular(20),
+          color: color8,
+        ),
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.all(10),
+        child: Center(
+          child: Text(
+            textLabel,
+            style: TextStyle(
+              fontSize: 15,
+            ),
+          ),
+        ),
       ),
     );
   }
